@@ -16,16 +16,16 @@ arXiv Link: To add
 | Model                | Pre-trained Checkpoints | Score File       | Seed | Best Valid Epoch | w/o ACE. B.F. | w/ ACE. B.F. |
 |----------------------|-------------------------|-------------------|------|------------------|---------------|--------------|
 | WavLM_Nes2Net        | -                       | -                 | 4    | 54               | 2.55%         | 2.33%        |
-|                      | [Google Drive](#)       | [Google Drive](#) | 42   | 54               | **2.53%**     | **2.22%**    |
+|                      | [Google Drive](https://drive.google.com/file/d/1pSWexWq21iglI1P-qmISZKGb9Qsx0uzG/view?usp=sharing)       | [Google Drive](https://drive.google.com/file/d/1seEX9D_K09byNXDNs5BO6eSY4jXpOSm6/view?usp=sharing) | 42   | 54               | **2.53%**     | **2.22%**    |
 |                      | -                       | -                 | 420  | 75               | 2.57%         | 2.27%        |
 |                      | -                       | -                 |      | **Best (Mean):** | 2.53% (2.55%) | 2.22% (2.27%) |
 | WavLM_Nes2Net_X      | -                       | -                 | 4    | 75               | 2.53%         | 2.29%        |
-|                      | [Google Drive](#)       | [Google Drive](#) | 42   | 54               | 2.53%         | **2.20%**    |
-|                      | [Google Drive](#)       | [Google Drive](#) | 420  | 75               | **2.48%**     | 2.22%        |
+|                      | [Google Drive](https://drive.google.com/file/d/1EynkhacBVdUvami7pWX8fyUQnyZaRnvV/view?usp=sharing)       | [Google Drive](https://drive.google.com/file/d/1l86auTYnhETlri9u_lhbXpUQ6IWIcHar/view?usp=sharing) | 42   | 54               | 2.53%         | **2.20%**    |
+|                      | [Google Drive](https://drive.google.com/file/d/1PrzfUyXQxytWlEyTTOvKLfXYzHjz3gbX/view?usp=sharing)       | [Google Drive](https://drive.google.com/file/d/1ye_UlNQigZBQm48pLzZiMOi8MTxITvpW/view?usp=sharing) | 420  | 75               | **2.48%**     | 2.22%        |
 |                      | -                       | -                 |      | **Best (Mean):** | 2.48% (2.51%) | 2.20% (2.24%) |
 | WavLM_Nes2Net_X_SeLU | -                       | -                 | 4    | 75               | 2.72%         | 2.40%        |
 |                      | -                       | -                 | 42   | 54               | 3.07%         | 2.69%        |
-|                      | [Google Drive](#)       | [Google Drive](#) | 420  | 74               | **2.28%**     | **2.02%**    |
+|                      | [Google Drive](https://drive.google.com/file/d/1FBuzA-UBYDkjei_ByP8u7ZAm4Dn_LLSI/view?usp=drive_link)      | [Google Drive](https://drive.google.com/file/d/12Y4KRaKOLz5oDGRaHc_ZYEjE0dU4tsHK/view?usp=sharing) | 420  | 74               | **2.28%**     | **2.02%**    |
 |                      | -                       | -                 |      | **Best (Mean):** | 2.28% (2.69%) | 2.02% (2.37%) |
 
 * Only best model checkpoints are provided.
