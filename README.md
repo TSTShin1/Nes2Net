@@ -13,20 +13,21 @@ arXiv Link: To add
 
 
 # Pretrained Models
-| Model                | Pre-trained Checkpoints | Seed | Best Valid Epoch | w/o ACE. B.F. | w/ ACE. B.F. |
-|----------------------|-------------------------|------|------------------|---------------|--------------|
-| WavLM_Nes2Net        | -                       | 4    | 54               | 2.55%         | 2.33%        |
-|                      | [[Google Drive]]()      | 42   | 54               | **2.53%**     | **2.22%**    |
-|                      | -                       | 420  | 75               | 2.57%         | 2.27%        |
-|                      |                         |      | Best(Mean):      | 2.53%(2.55%)  | 2.22%(2.27%) |
-| WavLM_Nes2Net_X      | -                       | 4    | 75               | 2.53%         | 2.29%        |
-|                      | -                       | 42   | 54               | 2.53%         | **2.20%**    |
-|                      | [[Google Drive]]()      | 420  | 75               | **2.48%**     | 2.22%        |
-|                      |                         |      | Best(Mean):      | 2.48%(2.51%)  | 2.20%(2.24%) |
-| WavLM_Nes2Net_X_SeLU | -                       | 4    | 75               | 2.72%         | 2.40%        |
-|                      | -                       | 42   | 54               | 3.07%         | 2.69%        |
-|                      | [[Google Drive]]()      | 420  | 74               | **2.28%**     | **2.02%**    |
-|                      |                         |      | Best(Mean):      | 2.28%(2.69%)  | 2.02%(2.37%) |
+| Model                | Pre-trained Checkpoints | Score File       | Seed | Best Valid Epoch | w/o ACE. B.F. | w/ ACE. B.F. |
+|----------------------|-------------------------|-------------------|------|------------------|---------------|--------------|
+| WavLM_Nes2Net        | -                       | -                 | 4    | 54               | 2.55%         | 2.33%        |
+|                      | [Google Drive](#)       | [Google Drive](#) | 42   | 54               | **2.53%**     | **2.22%**    |
+|                      | -                       | -                 | 420  | 75               | 2.57%         | 2.27%        |
+|                      | -                       | -                 |      | **Best (Mean):** | 2.53% (2.55%) | 2.22% (2.27%) |
+| WavLM_Nes2Net_X      | -                       | -                 | 4    | 75               | 2.53%         | 2.29%        |
+|                      | [Google Drive](#)       | [Google Drive](#) | 42   | 54               | 2.53%         | **2.20%**    |
+|                      | [Google Drive](#)       | [Google Drive](#) | 420  | 75               | **2.48%**     | 2.22%        |
+|                      | -                       | -                 |      | **Best (Mean):** | 2.48% (2.51%) | 2.20% (2.24%) |
+| WavLM_Nes2Net_X_SeLU | -                       | -                 | 4    | 75               | 2.72%         | 2.40%        |
+|                      | -                       | -                 | 42   | 54               | 3.07%         | 2.69%        |
+|                      | [Google Drive](#)       | [Google Drive](#) | 420  | 74               | **2.28%**     | **2.02%**    |
+|                      | -                       | -                 |      | **Best (Mean):** | 2.28% (2.69%) | 2.02% (2.37%) |
+
 * Only best model checkpoints are provided.
 
 
@@ -58,7 +59,7 @@ arXiv Link: To add
      Following is an example:
      ```
      CUDA_VISIBLE_DEVICES=0 python easy_inference_demo.py \
-     --model_path "/data/tianchi/Nes2Net_SVDD_ckpts/1203_WavLM_Nes2Net_X_SeLU_e74_seed420_valid0.04245662278274772.pt" \
+     --model_path "/data/tianchi/Nes2Net_SVDD_ckpts/WavLM_Nes2Net_X_SeLU_e74_seed420_valid0.04245662278274772.pt" \
      --file_to_test "/home/tianchi/data/SVDD2024/test_set/CtrSVDD_0115_E_0092590.flac" \
      --model_name WavLM_Nes2Net_X_SeLU
      ```
@@ -86,9 +87,9 @@ arXiv Link: To add
      Following is an example:
      ```
      CUDA_VISIBLE_DEVICES=6 python eval.py --base_dir /home/tianchi/data/SVDD2024/test_set \
-     --model_path "/data/tianchi/Nes2Net_SVDD_ckpts/0903_WavLM_Nes2Net_X_e75_seed420_valid0.03192785031473534.pt" \
+     --model_path "/data/tianchi/Nes2Net_SVDD_ckpts/WavLM_Nes2Net_X_e75_seed420_valid0.03192785031473534.pt" \
      --agg SEA --pool_func 'mean' --dilation 1 --Nes_ratio 8 8 --SE_ratio 1 --model_name WavLM_Nes2Net_X \
-     --outputname E75_0903_WavLM_SEA_Nes2Net_X_mean_8x8_SEr1_dila1_algo8_Tmax5_bz34_lr1e6_seed420
+     --outputname E75_WavLM_SEA_Nes2Net_X_mean_8x8_SEr1_dila1_algo8_Tmax5_bz34_lr1e6_seed420
      ```
      * Change the ```--base_dir``` to your SVDD2024 dataset **testset** path. 
      * Change the ```--model_path``` to your path of the checkpoint to test. 
@@ -104,7 +105,7 @@ arXiv Link: To add
      For example:
      ```
      python EER_minDCF.py --labels_file '/home/tianchi/data/SVDD2024/test.txt' \
-     --path scores/E75_0903_WavLM_SEA_Nes2Net_X_mean_8x8_SEr1_dila1_algo8_Tmax5_bz34_lr1e6_seed420.txt
+     --path scores/E75_WavLM_SEA_Nes2Net_X_mean_8x8_SEr1_dila1_algo8_Tmax5_bz34_lr1e6_seed420.txt
      ```
      Example output:
      ```
@@ -139,5 +140,3 @@ Thanks for following open-source projects:
 ```  
 To add
 ```
-
-
