@@ -7,10 +7,12 @@ import math
 ___author__ = "Tianchi Liu"
 __email__ = "tianchi_liu@u.nus.edu"
 
+
 class ASTP(nn.Module):
     """ Attentive statistics pooling: Channel- and context-dependent
         statistics pooling, first used in ECAPA_TDNN.
     """
+
     def __init__(self, in_dim, bottleneck_dim=128, global_context_att=False):
         super(ASTP, self).__init__()
         self.global_context_att = global_context_att
@@ -51,9 +53,10 @@ class ASTP(nn.Module):
             self.linear1(x_in))  # alpha = F.relu(self.linear1(x_in))
         alpha = torch.softmax(self.linear2(alpha), dim=2)
         mean = torch.sum(alpha * x, dim=2)
-        var = torch.sum(alpha * (x**2), dim=2) - mean**2
+        var = torch.sum(alpha * (x ** 2), dim=2) - mean ** 2
         std = torch.sqrt(var.clamp(min=1e-10))
         return torch.cat([mean, std], dim=1)
+
 
 class SSLModel(nn.Module):
     def __init__(self, device, args):
@@ -66,9 +69,9 @@ class SSLModel(nn.Module):
         if self.agg == 'SEA':
             self.avg_pool = nn.AdaptiveAvgPool2d(1)
             self.fc_att_merge = nn.Sequential(
-                nn.Linear(self.n_layer, int(self.n_layer//3), bias=False),
+                nn.Linear(self.n_layer, int(self.n_layer // 3), bias=False),
                 nn.ReLU(inplace=True),
-                nn.Linear(int(self.n_layer//3), self.n_layer, bias=False),
+                nn.Linear(int(self.n_layer // 3), self.n_layer, bias=False),
                 nn.Sigmoid()
             )
         elif self.agg == 'WeightedSum':
@@ -76,10 +79,10 @@ class SSLModel(nn.Module):
         elif self.agg == 'AttM':
             self.n_feat = self.out_dim
             self.W = nn.Parameter(torch.randn(self.n_feat, 1))
-            self.W1 = nn.Parameter(torch.randn(self.n_layer, int(self.n_layer//2)))
-            self.W2 = nn.Parameter(torch.randn(int(self.n_layer//2), self.n_layer))
-            self.hidden = int(self.n_layer*self.n_feat/4)
-            self.linear_proj = nn.Linear(self.n_layer*self.n_feat, self.n_feat)
+            self.W1 = nn.Parameter(torch.randn(self.n_layer, int(self.n_layer // 2)))
+            self.W2 = nn.Parameter(torch.randn(int(self.n_layer // 2), self.n_layer))
+            self.hidden = int(self.n_layer * self.n_feat / 4)
+            self.linear_proj = nn.Linear(self.n_layer * self.n_feat, self.n_feat)
             self.SWISH = nn.SiLU()
         else:
             raise ValueError
@@ -109,13 +112,13 @@ class SSLModel(nn.Module):
         x = x['hidden_states']
         x = torch.stack(x, dim=1)
         x_input = x
-        x = torch.mean(x, dim=2, keepdim=True) # X2 = AVG(X1) AVG across time dim
-        x = self.SWISH(torch.matmul(x, self.W)) # X3
+        x = torch.mean(x, dim=2, keepdim=True)  # X2 = AVG(X1) AVG across time dim
+        x = self.SWISH(torch.matmul(x, self.W))  # X3
         x = self.SWISH(torch.matmul(x.view(-1, self.n_layer), self.W1))
-        x = torch.sigmoid((torch.matmul(x, self.W2))) # X4
+        x = torch.sigmoid((torch.matmul(x, self.W2)))  # X4
         x = x.unsqueeze(-1).unsqueeze(-1)
-        x = torch.mul(x, x_input) # X5
-        x = x.permute(0, 2, 3, 1).contiguous().view(x.size(0), x.size(2), -1) # concatenate
+        x = torch.mul(x, x_input)  # X5
+        x = x.permute(0, 2, 3, 1).contiguous().view(x.size(0), x.size(2), -1)  # concatenate
         weighted_feature = self.linear_proj(x)
         return weighted_feature
 
@@ -139,115 +142,119 @@ class SSLModel(nn.Module):
             return self._Att_merge(emb)
         else:
             raise ValueError
-            
+
+
 class SEModule(nn.Module):
-    def __init__(self, channels, bottleneck=128):
+    def __init__(self, channels, SE_ratio=[8]):
         super(SEModule, self).__init__()
         self.se = nn.Sequential(
             nn.AdaptiveAvgPool1d(1),
-            nn.Conv1d(channels, bottleneck, kernel_size=1, padding=0),
+            nn.Conv1d(channels, channels // SE_ratio, kernel_size=1, padding=0),
             nn.ReLU(),
-            nn.Conv1d(bottleneck, channels, kernel_size=1, padding=0),
+            nn.Conv1d(channels // SE_ratio, channels, kernel_size=1, padding=0),
             nn.Sigmoid(),
-            )
+        )
 
     def forward(self, input):
         x = self.se(input)
         return input * x
 
+
 class Bottle2neck(nn.Module):
 
-    def __init__(self, inplanes, planes, kernel_size=None, dilation=None, scale = 8):
+    def __init__(self, inplanes, planes, kernel_size=None, dilation=None, scale=8, SE_ratio=8):
         super(Bottle2neck, self).__init__()
-        width       = int(math.floor(planes / scale))
-        self.conv1  = nn.Conv1d(inplanes, width*scale, kernel_size=1)
-        self.bn1    = nn.BatchNorm1d(width*scale)
-        self.nums   = scale -1
-        convs       = []
-        bns         = []
+        width = int(math.floor(planes / scale))
+        self.conv1 = nn.Conv1d(inplanes, width * scale, kernel_size=1)
+        self.bn1 = nn.BatchNorm1d(width * scale)
+        self.nums = scale - 1
+        convs = []
+        bns = []
         weighted_sum = []
-        num_pad = math.floor(kernel_size/2)*dilation
+        num_pad = math.floor(kernel_size / 2) * dilation
         for i in range(self.nums):
-            convs.append(nn.Conv2d(width, width, kernel_size=(kernel_size,1), dilation=(dilation, 1), padding=(num_pad, 0)))
+            convs.append(
+                nn.Conv2d(width, width, kernel_size=(kernel_size, 1), dilation=(dilation, 1), padding=(num_pad, 0)))
             bns.append(nn.BatchNorm2d(width))
-            initial_value = torch.ones(1, 1, 1, i+2) * (1 / (i+2))
+            initial_value = torch.ones(1, 1, 1, i + 2) * (1 / (i + 2))
             weighted_sum.append(nn.Parameter(initial_value, requires_grad=True))
         self.weighted_sum = nn.ParameterList(weighted_sum)
-        self.convs  = nn.ModuleList(convs)
-        self.bns    = nn.ModuleList(bns)
-        self.conv3  = nn.Conv1d(width*scale, planes, kernel_size=1)
-        self.bn3    = nn.BatchNorm1d(planes)
-        self.relu   = nn.ReLU()
-        self.width  = width
-        self.se     = SEModule(planes)
+        self.convs = nn.ModuleList(convs)
+        self.bns = nn.ModuleList(bns)
+        self.conv3 = nn.Conv1d(width * scale, planes, kernel_size=1)
+        self.bn3 = nn.BatchNorm1d(planes)
+        self.relu = nn.ReLU()
+        self.width = width
+        self.se = SEModule(planes,SE_ratio)
 
     def forward(self, x):
         residual = x
         out = self.conv1(x)
         out = self.relu(out)
-        out = self.bn1(out).unsqueeze(-1) #bz c T 1
+        out = self.bn1(out).unsqueeze(-1)  # bz c T 1
 
         spx = torch.split(out, self.width, 1)
         sp = spx[self.nums]
         for i in range(self.nums):
-          sp = torch.cat((sp, spx[i]), -1)
+            sp = torch.cat((sp, spx[i]), -1)
 
-          sp = self.bns[i](self.relu(self.convs[i](sp)))
-          sp_s = sp * self.weighted_sum[i]
-          sp_s = torch.sum(sp_s, dim=-1, keepdim=False)
+            sp = self.bns[i](self.relu(self.convs[i](sp)))
+            sp_s = sp * self.weighted_sum[i]
+            sp_s = torch.sum(sp_s, dim=-1, keepdim=False)
 
-          if i==0:
-            out = sp_s
-          else:
-            out = torch.cat((out, sp_s), 1)
-        out = torch.cat((out, spx[self.nums].squeeze(-1)),1)
+            if i == 0:
+                out = sp_s
+            else:
+                out = torch.cat((out, sp_s), 1)
+        out = torch.cat((out, spx[self.nums].squeeze(-1)), 1)
         out = self.conv3(out)
         out = self.relu(out)
         out = self.bn3(out)
         out = self.se(out)
         out += residual
-        return out 
+        return out
+
 
 class Nested_Res2Net_TDNN(nn.Module):
 
-    def __init__(self, Nes_ratio=4, input_channel=1024, dilation=2, pool_func='mean'):
+    def __init__(self, Nes_ratio=4, input_channel=1024, dilation=2, pool_func='mean', SE_ratio=[8]):
 
         super(Nested_Res2Net_TDNN, self).__init__()
         self.Nes_ratio = Nes_ratio[0]
-        assert input_channel%Nes_ratio[0] == 0
-        C = input_channel//Nes_ratio[0]
+        assert input_channel % Nes_ratio[0] == 0
+        C = input_channel // Nes_ratio[0]
         self.C = C
         Build_in_Res2Nets = []
         bns = []
-        for i in range(Nes_ratio[0]-1):
-            Build_in_Res2Nets.append(Bottle2neck(C, C, kernel_size=3, dilation=dilation, scale=Nes_ratio[1]))
+        for i in range(Nes_ratio[0] - 1):
+            Build_in_Res2Nets.append(Bottle2neck(C, C, kernel_size=3, dilation=dilation, scale=Nes_ratio[1], SE_ratio=SE_ratio[0]))
             bns.append(nn.BatchNorm1d(C))
-        self.Build_in_Res2Nets  = nn.ModuleList(Build_in_Res2Nets)
-        self.bns  = nn.ModuleList(bns)
+        self.Build_in_Res2Nets = nn.ModuleList(Build_in_Res2Nets)
+        self.bns = nn.ModuleList(bns)
         self.bn = nn.BatchNorm1d(1024)
         self.relu = nn.ReLU()
         self.pool_func = pool_func
-        if pool_func=='mean':
+        if pool_func == 'mean':
             self.fc = nn.Linear(1024, 1)
-        elif pool_func=='ASTP':
+        elif pool_func == 'ASTP':
             self.pooling = ASTP(in_dim=input_channel, bottleneck_dim=128, global_context_att=False)
             self.fc = nn.Linear(2048, 1)
 
     def forward(self, x):
         spx = torch.split(x, self.C, 1)
-        for i in range(self.Nes_ratio-1):
-          if i==0:
-            sp = spx[i]
-          else:
-            sp = sp + spx[i]
-          sp = self.Build_in_Res2Nets[i](sp)
-          sp = self.relu(sp)
-          sp = self.bns[i](sp)
-          if i==0:
-            out = sp
-          else:
-            out = torch.cat((out, sp), 1)
-        out = torch.cat((out, spx[-1]),1)
+        for i in range(self.Nes_ratio - 1):
+            if i == 0:
+                sp = spx[i]
+            else:
+                sp = sp + spx[i]
+            sp = self.Build_in_Res2Nets[i](sp)
+            sp = self.relu(sp)
+            sp = self.bns[i](sp)
+            if i == 0:
+                out = sp
+            else:
+                out = torch.cat((out, sp), 1)
+        out = torch.cat((out, spx[-1]), 1)
         out = self.bn(out)
         out = self.relu(out)
         if self.pool_func == 'mean':
@@ -257,6 +264,7 @@ class Nested_Res2Net_TDNN(nn.Module):
         out = self.fc(out)
         return out
 
+
 class WavLM_Nes2Net_noRes_w_allT(nn.Module):
     def __init__(self, args, device):
         super(WavLM_Nes2Net_noRes_w_allT, self).__init__()
@@ -265,7 +273,8 @@ class WavLM_Nes2Net_noRes_w_allT(nn.Module):
         # create network WavLM
         self.ssl_model = SSLModel(self.device, args)
         # self.fc = nn.Linear(1024, 128)
-        self.Nested_Res2Net_TDNN = Nested_Res2Net_TDNN(Nes_ratio=args.Nes_ratio, input_channel=1024, dilation=args.dilation, pool_func=args.pool_func)
+        self.Nested_Res2Net_TDNN = Nested_Res2Net_TDNN(Nes_ratio=args.Nes_ratio, input_channel=1024,
+                                                       dilation=args.dilation, pool_func=args.pool_func, SE_ratio=args.SE_ratio)
 
     def forward(self, x, SSL_freeze=False):
         x = x.to(self.device)
@@ -273,24 +282,27 @@ class WavLM_Nes2Net_noRes_w_allT(nn.Module):
         # Pre-trained WavLM model fine-tuning
         if SSL_freeze:
             with torch.no_grad():
-                x_ssl_feat = self.ssl_model(x) # bz T 1024
+                x_ssl_feat = self.ssl_model(x)  # bz T 1024
         else:
-            x_ssl_feat = self.ssl_model(x) # bz T 1024
-        x_ssl_feat = x_ssl_feat.permute(0,2,1) # bz 1024 T 
+            x_ssl_feat = self.ssl_model(x)  # bz T 1024
+        x_ssl_feat = x_ssl_feat.permute(0, 2, 1)  # bz 1024 T
         output = self.Nested_Res2Net_TDNN(x_ssl_feat)
-     
 
         return output
 
+
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--agg", type=str, default='SEA', choices=['SEA', 'AttM', 'WeightedSum'], help="the aggregation method for SSL")
+    parser.add_argument("--agg", type=str, default='SEA', choices=['SEA', 'AttM', 'WeightedSum'],
+                        help="the aggregation method for SSL")
     parser.add_argument("--dilation", type=int, default=1, help="dilation")
-    parser.add_argument("--pool_func", type=str, default='mean', choices=['mean', 'ASTP'], help="pooling function, choose from mean and ASTP")
+    parser.add_argument("--pool_func", type=str, default='mean', choices=['mean', 'ASTP'],
+                        help="pooling function, choose from mean and ASTP")
     parser.add_argument("--SE_ratio", type=int, nargs='+', default=[1], help="SE downsampling ratio in the bottleneck")
     parser.add_argument("--Nes_ratio", type=int, nargs='+', default=[8, 8], help="Nes_ratio, from outer to inner")
-    
+
     args = parser.parse_args()
     model = WavLM_Nes2Net_noRes_w_allT(args=args, device='cuda')
     x = torch.rand((4, 32000)).to('cuda')
@@ -307,13 +319,16 @@ if __name__ == '__main__':
     # print(trainable_params)
 
     from fvcore.nn import FlopCountAnalysis
+
     # Profiling the model
-    x = torch.rand((1,1024,200)).to('cuda')
+    x = torch.rand((1, 1024, 200)).to('cuda')
     flops = FlopCountAnalysis(model.Nested_Res2Net_TDNN, x)
     print(f"FLOPs: {flops.total()} ({flops.total() / 1e9} GFLOPs)")
 
     from ptflops import get_model_complexity_info
+
     input_shape = (1024, 200)
-    macs, params = get_model_complexity_info(model.Nested_Res2Net_TDNN, input_shape, as_strings=True, print_per_layer_stat=True)
+    macs, params = get_model_complexity_info(model.Nested_Res2Net_TDNN, input_shape, as_strings=True,
+                                             print_per_layer_stat=True)
     print(f"MACs: {macs}")
     print(f"Parameters: {params}")
