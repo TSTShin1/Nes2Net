@@ -1,5 +1,5 @@
-# 🔥🔥🔥Nes2Net: A Lightweight Nested Res2Net Architecture for Foundation Model-based Speech Anti-spoofing 
-Official release of pretrained models and scripts for "Nes2Net: A Lightweight Nested Res2Net Architecture for Foundation Model-Based Speech Anti-Spoofing."
+# 🔥🔥🔥Nes2Net: A Lightweight Nested Architecture for Foundation Model Driven Speech Anti-spoofing
+Official release of pretrained models and scripts for "Nes2Net: A Lightweight Nested Architecture for Foundation Model Driven Speech Anti-spoofing"
 
 📢 **This repo is for the Controlled Singing Voice Deepfake Detection (CtrSVDD) dataset.**
 
