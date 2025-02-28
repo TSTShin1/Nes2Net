@@ -217,7 +217,7 @@ class Bottle2neck(nn.Module):
 
 class Nested_Res2Net_TDNN(nn.Module):
 
-    def __init__(self, Nes_ratio=4, input_channel=1024, dilation=2, pool_func='mean', SE_ratio=[8]):
+    def __init__(self, Nes_ratio=[8, 8], input_channel=1024, dilation=2, pool_func='mean', SE_ratio=[8]):
 
         super(Nested_Res2Net_TDNN, self).__init__()
         self.Nes_ratio = Nes_ratio[0]
