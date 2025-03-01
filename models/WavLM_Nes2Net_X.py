@@ -145,7 +145,7 @@ class SSLModel(nn.Module):
 
 
 class SEModule(nn.Module):
-    def __init__(self, channels, SE_ratio=[8]):
+    def __init__(self, channels, SE_ratio=8):
         super(SEModule, self).__init__()
         self.se = nn.Sequential(
             nn.AdaptiveAvgPool1d(1),
