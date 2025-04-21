@@ -7,8 +7,9 @@ For the **ASVspoof** and **In-the-Wild** dataset: https://github.com/Liu-Tianchi
 
 arXiv Link: https://arxiv.org/abs/2504.05657
 
-# Update:
 
+# Update:
+🔥[April 20, 2025] ASVspoof 5 pretrained model and codes are now avaiable!!! 👉 [asvspoof5](https://github.com/Liu-Tianchi/Nes2Net_ASVspoof_ITW/tree/asvspoof5)
 
 # Pretrained Models
 | Model                | Pre-trained Checkpoints | Score File       | Seed | Best Valid Epoch | w/o ACE. B.F. | w/ ACE. B.F. |
