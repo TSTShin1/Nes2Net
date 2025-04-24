@@ -72,6 +72,23 @@ If you want to perform easy inference with pretrained models:
      ```
      CUDA_VISIBLE_DEVICES= 
      ```
+  3. Interpreting Prediction Scores
+     When training on CtrSVDD, the target labels are:
+     > **Important:** For models trained on the `CtrSVDD` dataset:
+     - `1` indicates **real** audio  
+     - `0` indicates **fake** audio
+        
+     During inference, the model outputs a continuous **score**. Here’s how to interpret it:
+     - **Scores > 0.8** → Highly likely to be **real audio** (≈95% of real samples)
+     - **Scores < 0** → Highly likely to be **fake audio** (≈95% of fake samples)
+     - **Scores between 0 and 0.8** → You can apply a decision threshold (e.g., based on **EER**) for classification.
+      
+     > Example:  
+     > A score of `3.4` means the model is confident the input is a **real** sample.
+---
+
+> ⚠️ **Note**: This repository is designed for **singing voice** anti-spoofing tasks. If you are working on **speech-oriented** detection, please refer to the official repositories of the **ASVspoof** dataset series above for more appropriate tools and models.
+
 ## Train the model by yourself
 If you want to train the model yourself, check the command template in: ```train.sh```
 
