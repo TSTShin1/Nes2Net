@@ -3,7 +3,7 @@ Official release of pretrained models and scripts for "Nes2Net: A Lightweight Ne
 
 arXiv Link: https://arxiv.org/abs/2504.05657
 
-📢 **This repo is for the Controlled Singing Voice Deepfake Detection (CtrSVDD) dataset.**
+📢 **[IMPORTANT] This repo is for the Controlled Singing Voice Deepfake Detection (CtrSVDD) dataset. For speech cases, please refer to following two repos:**
 
 For the **ASVspoof 19&21** and **In-the-Wild** dataset: 👉 [asvspoof19/21 & In-the-Wild](https://github.com/Liu-Tianchi/Nes2Net_ASVspoof_ITW)  
 For the **ASVspoof 5** dataset: 👉 [asvspoof5](https://github.com/Liu-Tianchi/Nes2Net_ASVspoof_ITW/tree/asvspoof5)
