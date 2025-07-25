@@ -192,7 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true", help="Run in debug mode.")
     parser.add_argument("--foldername", type=str, default="0629_SE_algo8_Tmax4", help="The foldername to use.")
     parser.add_argument("--batch_size", type=int, default=34, help="The batch size for training.")
-    parser.add_argument("--num_workers", type=int, default=12, help="The number of workers for the data loader.")
+    parser.add_argument("--num_workers", type=int, default=4, help="The number of workers for the data loader.")
     parser.add_argument("--log_dir", type=str, default="logs", help="The directory for the logs.")
     parser.add_argument("--T_max", type=int, default=5, help="T_max of cosine.")
     parser.add_argument("--seed", type=int, default=42, help="seed")
