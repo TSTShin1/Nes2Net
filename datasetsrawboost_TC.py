@@ -54,12 +54,13 @@ class SVDD2024(Dataset):
             label = 0  # dummy label. Not used for test set.
         else:
             file = self.file_list[index]
-            file_name = file.split(" ")[2].strip()
-            bonafide_or_spoof = file.split(" ")[-1].strip()
+            file_name = file.split(" ")[1].strip()
+            bonafide_or_spoof = file.split(" ")[2].strip()
             label = 1 if bonafide_or_spoof == "bonafide" else 0
 
+
         # Append the .flac extension to the file name
-        file_path = os.path.join(self.base_dir, file_name + ".flac")
+        file_path = os.path.join(self.base_dir, file_name)
         if not os.path.exists(file_path):
             print(f"File not found: {file_path}")
             # Optionally handle the missing file case, e.g., return a dummy sample
