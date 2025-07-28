@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import fairseq
 from s3prl import hub
 import math
 
@@ -9,90 +10,31 @@ __email__ = "tianchi_liu@u.nus.edu"
 
 
 class SSLModel(nn.Module):
-    def __init__(self, device, args):
+    def __init__(self,device):
         super(SSLModel, self).__init__()
-        self.model = getattr(hub, "wavlm_large")()  # Changed for WavLM
-        self.device = device
+        cp_path = 'xlsr2_300m.pt'   # Change the pre-trained XLSR model path. 
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([cp_path])
+        self.model = model[0]
+        self.device=device
         self.out_dim = 1024
-        self.agg = args.agg
-        self.n_layer = 25
-        if self.agg == 'SEA':
-            self.avg_pool = nn.AdaptiveAvgPool2d(1)
-            self.fc_att_merge = nn.Sequential(
-                nn.Linear(self.n_layer, int(self.n_layer // 3), bias=False),
-                nn.ReLU(inplace=True),
-                nn.Linear(int(self.n_layer // 3), self.n_layer, bias=False),
-                nn.Sigmoid()
-            )
-        elif self.agg == 'WeightedSum':
-            self.weight_hidd = nn.Parameter(torch.ones(self.n_layer))  # Initialize weights for weighted sum
-        elif self.agg == 'AttM':
-            self.n_feat = self.out_dim
-            self.W = nn.Parameter(torch.randn(self.n_feat, 1))
-            self.W1 = nn.Parameter(torch.randn(self.n_layer, int(self.n_layer // 2)))
-            self.W2 = nn.Parameter(torch.randn(int(self.n_layer // 2), self.n_layer))
-            self.hidden = int(self.n_layer * self.n_feat / 4)
-            self.linear_proj = nn.Linear(self.n_layer * self.n_feat, self.n_feat)
-            self.SWISH = nn.SiLU()
-        else:
-            raise ValueError
+        return
 
-    def _weighted_sum(self, x):
-        feature = x['hidden_states']
-        layer_num = len(feature)
-        stacked_feature = torch.stack(feature, dim=0)
-        _, *origin_shape = stacked_feature.shape
-        stacked_feature = stacked_feature.view(layer_num, -1)
-        norm_weights = F.softmax(self.weight_hidd[:layer_num], dim=-1)
-        weighted_feature = (norm_weights.unsqueeze(-1) * stacked_feature).sum(dim=0)
-        weighted_feature = weighted_feature.view(*origin_shape)
-        return weighted_feature
+    def extract_feat(self, input_data):
+        # put the model to GPU if it not there
+        if next(self.model.parameters()).device != input_data.device \
+           or next(self.model.parameters()).dtype != input_data.dtype:
+            self.model.to(input_data.device, dtype=input_data.dtype)
+            self.model.train()      
 
-    def _SE_merge(self, x):
-        feature = x['hidden_states']
-        stacked_feature = torch.stack(feature, dim=1)
-        b, c, _, _ = stacked_feature.size()
-        y = self.avg_pool(stacked_feature).view(b, c)
-        y = self.fc_att_merge(y).view(b, c, 1, 1)
-        stacked_feature = stacked_feature * y.expand_as(stacked_feature)
-        weighted_feature = torch.sum(stacked_feature, dim=1)
-        return weighted_feature
-
-    def _Att_merge(self, x):
-        x = x['hidden_states']
-        x = torch.stack(x, dim=1)
-        x_input = x
-        x = torch.mean(x, dim=2, keepdim=True)  # X2 = AVG(X1) AVG across time dim
-        x = self.SWISH(torch.matmul(x, self.W))  # X3
-        x = self.SWISH(torch.matmul(x.view(-1, self.n_layer), self.W1))
-        x = torch.sigmoid((torch.matmul(x, self.W2)))  # X4
-        x = x.unsqueeze(-1).unsqueeze(-1)
-        x = torch.mul(x, x_input)  # X5
-        x = x.permute(0, 2, 3, 1).contiguous().view(x.size(0), x.size(2), -1)  # concatenate
-        weighted_feature = self.linear_proj(x)
-        return weighted_feature
-
-    def forward(self, input_data):
-        input_data = input_data.to(self.device)
-        if next(self.model.parameters()).device != input_data.device:
-            self.model.to(input_data.device)
-            self.model.train()
-
+        # input should be in shape (batch, length)
         if input_data.ndim == 3:
             input_tmp = input_data[:, :, 0]
         else:
             input_tmp = input_data
-
-        emb = self.model(input_tmp)
-        if self.agg == 'SEA':
-            return self._SE_merge(emb)
-        elif self.agg == 'WeightedSum':
-            return self._weighted_sum(emb)
-        elif self.agg == 'AttM':
-            return self._Att_merge(emb)
-        else:
-            raise ValueError
-
+                
+        # [batch, length, dim]
+        emb = self.model(input_tmp, mask=False, features_only=True)['x']
+        return emb
 
 class SEModule(nn.Module):
     def __init__(self, channels, SE_ratio=8):
@@ -266,7 +208,7 @@ class WavLM_Nes2Net_noRes(nn.Module):
         self.device = device
 
         # create network WavLM
-        self.ssl_model = SSLModel(self.device, args)
+        self.ssl_model = SSLModel(self.device)
         # self.fc = nn.Linear(1024, 128)
         self.Nested_Res2Net_TDNN = Nested_Res2Net_TDNN(Nes_ratio=args.Nes_ratio, input_channel=1024,
                                                        dilation=args.dilation, pool_func=args.pool_func, SE_ratio=args.SE_ratio)
@@ -277,9 +219,9 @@ class WavLM_Nes2Net_noRes(nn.Module):
         # Pre-trained WavLM model fine-tuning
         if SSL_freeze:
             with torch.no_grad():
-                x_ssl_feat = self.ssl_model(x)  # bz T 1024
+                x_ssl_feat = self.ssl_model.extract_feat(x)
         else:
-            x_ssl_feat = self.ssl_model(x)  # bz T 1024
+            x_ssl_feat = self.ssl_model.extract_feat(x)
         x_ssl_feat = x_ssl_feat.permute(0, 2, 1)  # bz 1024 T
         output = self.Nested_Res2Net_TDNN(x_ssl_feat)
 
