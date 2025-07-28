@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from fairseq import checkpoint_utils
+import fairseq
 import math
 
 ___author__ = "Tianchi Liu"
