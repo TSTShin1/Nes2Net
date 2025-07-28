@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import fairseq
-from s3prl import hub
 import math
 
 ___author__ = "Tianchi Liu"
